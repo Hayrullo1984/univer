@@ -2,6 +2,7 @@
 namespace common\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
@@ -16,6 +17,7 @@ use yii\web\IdentityInterface;
  * @property string $password_reset_token
  * @property string $email
  * @property string $auth_key
+ * @property array $roles
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
@@ -25,6 +27,7 @@ class User extends ActiveRecord implements IdentityInterface
 {
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 10;
+    public $roles;
 
 
     /**
@@ -51,10 +54,44 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
+            ['roles','safe'],
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
         ];
     }
+
+     /**
+     * {@inheritdoc}
+     */
+     public function __construct()
+     {
+        $this->on(self::EVENT_AFTER_UPDATE,[$this,'saveRoles']);
+     }
+
+     public function saveRoles()
+     {
+        Yii::$app->authManager->revokeAll($this->getId());
+        if (is_array($this->roles)) {
+            foreach ($this->roles as $roleName) {
+                if($role = Yii::$app->authManager->getRole($roleName))
+                {
+                    Yii::$app->authManager->assign($role,$this->getId());
+                }
+            }
+        }
+
+     }
+
+     public function afterFind()
+     {
+        $this->roles = $this->getRoles();
+     }
+
+     public function getRoles()
+     {
+        $role = Yii::$app->authManager->getRolesByUser($this->getId());
+        return ArrayHelper::getColumn($role,'name',false);
+     }
 
     /**
      * {@inheritdoc}
@@ -186,4 +223,5 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $this->password_reset_token = null;
     }
+
 }

@@ -5,9 +5,9 @@
 
 use backend\assets\AppAsset;
 use yii\helpers\Html;
-use yii\bootstrap\Nav;
-use yii\bootstrap\NavBar;
-use yii\widgets\Breadcrumbs;
+use yii\bootstrap4\Nav;
+use yii\bootstrap4\NavBar;
+use yii\bootstrap4\Breadcrumbs;
 use common\widgets\Alert;
 
 AppAsset::register($this);
@@ -32,28 +32,25 @@ AppAsset::register($this);
         'brandLabel' => Yii::$app->name,
         'brandUrl' => Yii::$app->homeUrl,
         'options' => [
-            'class' => 'navbar-inverse navbar-fixed-top',
+            'class' => 'fixed-top navbar-expand-lg navbar-dark bg-dark',
         ],
     ]);
     $menuItems = [
-        ['label' => 'Ovqatlar', 'url' => ['/food/index']],
-        ['label' => 'Masalliqlar', 'url' => ['/thing/index']],
-        ['label' => 'Tayyorlanishi', 'url' => ['/preparation/index']],
+        ['label' => 'Home', 'url' => ['/site/index']],
+        ['label' => 'Users', 'url' => ['/user/index']],
     ];
+    
     if (Yii::$app->user->isGuest) {
         $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
     } else {
-        $menuItems[] = '<li>'
-            . Html::beginForm(['/site/logout'], 'post')
-            . Html::submitButton(
-                'Logout (' . Yii::$app->user->identity->username . ')',
-                ['class' => 'btn btn-link logout']
-            )
-            . Html::endForm()
-            . '</li>';
+        $menuItems[] = [
+            'label'=>'Logout (' . Yii::$app->user->identity->username . ')',
+            'url'=>['/site/logout'],
+            'linkOptions'=>['data-method'=>'post'],
+    ];
     }
     echo Nav::widget([
-        'options' => ['class' => 'navbar-nav navbar-right'],
+        'options' => ['class' => 'navbar-nav ml-auto'],
         'items' => $menuItems,
     ]);
     NavBar::end();

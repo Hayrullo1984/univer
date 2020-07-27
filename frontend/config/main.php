@@ -11,12 +11,19 @@ return [
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'controllerNamespace' => 'frontend\controllers',
+    'name'=>'ASU',
+    // 'container'=>[
+    //     'definitions'=>[
+    //          'yii\bootstrap\ActiveForm' =>'yii\bootstrap4\ActiveForm',
+    //     ],
+    // ],
+    'defaultRoute' => 'rm-shtat/index',
     'components' => [
         'request' => [
-            'baseUrl'=>'',
             'csrfParam' => '_csrf-frontend',
-          
+            'baseUrl'=>'',
         ],
+
         'user' => [
             'identityClass' => 'common\models\User',
             'enableAutoLogin' => true,
@@ -43,6 +50,7 @@ return [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                ''=>'',
             ],
         ],
         /**/

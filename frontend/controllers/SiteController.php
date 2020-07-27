@@ -1,7 +1,6 @@
 <?php
 namespace frontend\controllers;
 
-use common\models\Food;
 use Yii;
 use yii\base\InvalidArgumentException;
 use yii\web\BadRequestHttpException;
@@ -9,13 +8,10 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use common\models\LoginForm;
-use common\models\Preparation;
 use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
 use frontend\models\SignupForm;
 use frontend\models\ContactForm;
-use conquer\select2\Select2Action;
-use frontend\models\ClientForm;
 
 /**
  * Site controller
@@ -35,7 +31,7 @@ class SiteController extends Controller
                     [
                         'actions' => ['signup'],
                         'allow' => true,
-                        'roles' => ['?'],
+                        'roles' => ['admin'],
                     ],
                     [
                         'actions' => ['logout'],
@@ -66,31 +62,7 @@ class SiteController extends Controller
                 'class' => 'yii\captcha\CaptchaAction',
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
-            'ajax' => [
-                'class' => Select2Action::className(),
-                'dataCallback' => [$this, 'dataCallback'],
-            ],
-            
         ];
-    }
-
-     /**
-     *
-     * @param string $q
-     * @return array
-     */
-    public function dataCallback($q)
-    {
-        $query = new \yii\db\ActiveQuery(\common\models\Thing::className());
-        return
-            [
-                'results' =>  $query->select([
-                    'thing.id as id',
-                    'thing.name as text',
-                ])
-                // ->andWhere(['thing.status'=>1])
-                ->asArray()->all(),
-            ];
     }
 
     /**
@@ -100,82 +72,7 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        $model = new ClientForm();
-        if($model->load(Yii::$app->request->post())){
-            if(count($model->things)>=2 && count($model->things)<=5){
-                $blackList = Preparation::find()
-                ->alias("pr")
-                ->select(["pr.food_id"])->
-                joinWith("thing th")
-                ->andWhere(['th.status'=>"0"])
-                // ->asArray()
-                ->all();
-                $ls = [];
-                foreach($blackList as $blist){
-                    $ls[]= $blist->food_id;
-                }
-                $preparations = Preparation::find()
-                ->joinWith("thing t")
-                ->joinWith('food f')
-                ->andWhere(['in','thing_id',$model->things])
-                ->andWhere(['NOT IN','food_id',$ls])
-                ->all();
-                
-                // $foods = Food::find()->all();
-                $ready =[];
-                 if(!empty($preparations)){
-                //         return "pustoy";
-            
-                
-                $list = [];
-                $i=0;
-                $name = $preparations[0]->food->name;
-                    foreach ($preparations as $preparation){
-                
-                        if($name!=$preparation->food->name){
-                            $i=0;
-                        }
-                        $name = $preparation->food->name;
-                        $list["$name"]["count"]=++$i;
-                        $list["$name"]["name"][] =$preparation->thing->name;
-                        $list["$name"]["status"][] = $preparation->thing->status;
-                    }
-                    $newList = [];
-                    foreach($list as $key=>$value)
-                    {
-                        if(!in_array(0,$value["status"])){
-                            if($value['count'] == count($model->things))
-                            $newList["tuliq"][]=$key;
-                            else if($value['count']>=2)
-                            $newList["qisman"][]=$key;
-                        }
-
-                    }
-                    
-
-                        if(isset($newList['tuliq'])){
-                           $ready = $newList['tuliq'];   
-                        }else if(!isset($newList['tuliq']) && isset($newList['qisman'])){
-                            $ready = $newList['qisman'];
-                        }
-
-                    // sort($newList);
-                // echo "<pre>"; 
-                // print_r($preparations);exit;
-               
-            }
-            return $this->render('index',['model'=>$model,'list'=>$ready]);
-            // else{
-            //     return
-            // }
-        }
-            else{
-                Yii::$app->session->setFlash('error',"Masalliqlarni soni 2 va 5 oralig'ida bo'lishi kerak");
-            }
-            // return $this->render('index',['model'=>$model]);            
-        }
-        return $this->render('index',['model'=>$model]);
-
+        return $this->render('index');
     }
 
     /**
@@ -185,6 +82,7 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
+        $this->layout = 'auth';
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }

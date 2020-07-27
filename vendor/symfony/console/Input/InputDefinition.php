@@ -333,11 +333,15 @@ class InputDefinition
     /**
      * Returns the InputOption name given a shortcut.
      *
+     * @param string $shortcut The shortcut
+     *
+     * @return string The InputOption name
+     *
      * @throws InvalidArgumentException When option given does not exist
      *
      * @internal
      */
-    public function shortcutToName(string $shortcut): string
+    public function shortcutToName($shortcut)
     {
         if (!isset($this->shortcuts[$shortcut])) {
             throw new InvalidArgumentException(sprintf('The "-%s" option does not exist.', $shortcut));
@@ -380,21 +384,21 @@ class InputDefinition
             $elements[] = '[--]';
         }
 
-        $tail = '';
         foreach ($this->getArguments() as $argument) {
             $element = '<'.$argument->getName().'>';
-            if ($argument->isArray()) {
-                $element .= '...';
+            if (!$argument->isRequired()) {
+                $element = '['.$element.']';
+            } elseif ($argument->isArray()) {
+                $element .= ' ('.$element.')';
             }
 
-            if (!$argument->isRequired()) {
-                $element = '['.$element;
-                $tail .= ']';
+            if ($argument->isArray()) {
+                $element .= '...';
             }
 
             $elements[] = $element;
         }
 
-        return implode(' ', $elements).$tail;
+        return implode(' ', $elements);
     }
 }
